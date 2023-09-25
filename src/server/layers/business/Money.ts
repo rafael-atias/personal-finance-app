@@ -52,7 +52,7 @@ export class Money {
 
     private checkSameCurrencyAs(aMoney: Money) {
         if(aMoney.currency !== this.currency) {
-            throw new Error("These sums don't have the same currency");   
+            throw new IncorrectCurrencyError(`There is a mismatch of currencies. Got a ${this.currency.getName()} but received a ${aMoney.getCurrency().getName()}` );   
         }
     }
 
