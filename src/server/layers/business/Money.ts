@@ -1,12 +1,29 @@
 import { Currency } from "./Currency";
 
+export class IncorrectCurrencyError implements Error {
+    name: string = "IncorrectCurrencyError";
+    message: string;
+
+    constructor(message: string) {
+        this.message = message;
+    }
+}
+
 export class Money {
-    amount: number;
-    currency: Currency;
+    private amount: number;
+    private currency: Currency;
     
     constructor(amount: number, currency: Currency) {
         this.amount = amount;
         this.currency = currency;
+    }
+
+    getAmount():number {
+        return this.amount
+    }
+
+    getCurrency(): Currency {
+        return this.currency
     }
 
     add(aMoney: Money): Money {
