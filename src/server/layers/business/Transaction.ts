@@ -1,6 +1,8 @@
 import {randomUUID} from "crypto";
 import { Money } from "./Money";
 
+export type TransactionType = "Deposit" | "Cash Withdrawal" | "Point of sale" | "Bank transfer" | "Credit card purchase"
+
 export class Transaction {
     id: string;
     type: string;
