@@ -3,10 +3,14 @@
   "version": "1.0.0",
   "description": "",
   "main": "/build/server/server.js",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
   "scripts": {
     "test": "jest --verbose --watch",
     "dev": "concurrently \"npx tsc --watch\" \"nodemon -q ./build/server/server.js\"",
-    "start": "node ./build/server/server.js"
+    "start": "concurrently \"npx tsc\" \"node ./build/server/server.js\""
   },
   "author": "Rafael Atías",
   "license": "ISC",
