@@ -1,53 +1,83 @@
-import { describe, it, expect } from "@jest/globals"
-import { Money } from "../server/layers/business/Money"
-import { USDollar } from "../server/layers/business/Currency"
-import { Transaction } from "../server/layers/business/Transaction"
+import { randomUUID } from "crypto";
+import { describe, it, expect } from "@jest/globals";
+import { Money, USDOLLAR, Transaction } from "../server/layers/business/types";
 
 describe("class Transaction test suite", () => {
-    const transactionType = "Deposit"
-    const transactionNotes = "Hello world"
-    const transactionDate = new Date(2023, 9, 20)
-    const money = new Money(30, new USDollar())
-    const transaction = new Transaction(money, transactionType, transactionNotes, transactionDate)
+  const id = randomUUID();
+  const transactionType = "Deposit";
+  const transactionNotes = "Hello world";
+  const transactionDate = new Date(2023, 9, 20);
+  const money = new Money(30, USDOLLAR);
+  const transaction = new Transaction(
+    money,
+    transactionType,
+    transactionNotes,
+    transactionDate
+  );
 
-    describe("The getMoney method", () => {
-        it("should return the same Money object the transaction was instanced with", () => {
-            const moneyFromTransaction = transaction.getMoney()
+  describe("The id property", () => {
+    it("should produce a random value if no id is passed in to the constructor", () => {
+      const transaction2 = new Transaction(
+        money,
+        transactionType,
+        transactionNotes,
+        transactionDate
+      );
 
-            expect(moneyFromTransaction instanceof Money).toBe(true)
-            expect(moneyFromTransaction).toStrictEqual(money)
-        })
-    })
+      expect(transaction.id).not.toStrictEqual(transaction2.id);
+    });
 
-    describe("The getType method", () => {
-        it("should return the same type the transaction was instanced with", () => {
-            const type = transaction.getType()
+    it("should keep the passed in id value to the constructor", () => {
+      const transaction2 = new Transaction(
+        money,
+        transactionType,
+        transactionNotes,
+        transactionDate,
+        id
+      );
 
-            expect(type).toStrictEqual(transactionType)
-        })
-    })
+      expect(transaction2.id).toStrictEqual(id);
+    });
+  });
 
-    describe("The getNotes method", () => {
-        it("should return the same notes the transaction was instanced with", () => {
-            const notes = transaction.getNotes()
+  describe("The money property", () => {
+    it("should contain the same Money object the transaction was instanced with", () => {
+      const moneyFromTransaction = transaction.money;
 
-            expect(notes).toStrictEqual(transactionNotes)
-        })
-    })
+      expect(moneyFromTransaction instanceof Money).toBe(true);
+      expect(moneyFromTransaction).toStrictEqual(money);
+    });
+  });
 
-    describe("The getDate method", () => {
-        it("should return the Date object the transaction was instanced with", () => {
-            const date = transaction.getDate()
+  describe("The type property", () => {
+    it("should contain the same type the transaction was instanced with", () => {
+      const type = transaction.type;
 
-            expect(date).toStrictEqual(transactionDate)
-        })
-    })
+      expect(type).toStrictEqual(transactionType);
+    });
+  });
 
-    describe("Rhe getDataString method", () => {
-        it("should return the DateString representing the Date the transaction was instanced with", () => {
-            const dateString = transactionDate.toDateString()
+  describe("The notes property", () => {
+    it("should contain the same notes the transaction was instanced with", () => {
+      const notes = transaction.notes;
 
-            expect(dateString).toStrictEqual(transaction.getDateString())
-        })
-    })
-})
+      expect(notes).toStrictEqual(transactionNotes);
+    });
+  });
+
+  describe("The date property", () => {
+    it("should contain the Date object the transaction was instanced with", () => {
+      const date = transaction.date;
+
+      expect(date).toStrictEqual(transactionDate);
+    });
+  });
+
+  describe("The getDataString method", () => {
+    it("should return the DateString representing the Date the transaction was instanced with", () => {
+      const dateString = transactionDate.toDateString();
+
+      expect(dateString).toStrictEqual(transaction.getDateString());
+    });
+  });
+});

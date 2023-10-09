@@ -1,194 +1,154 @@
-import {expect, it, describe } from '@jest/globals';
-
-import { Currency, USDollar } from "../server/layers/business/Currency";
-import { Money, IncorrectCurrencyError } from "../server/layers/business/Money";
+import { expect, it, describe } from "@jest/globals";
+import {
+  Money,
+  IncorrectCurrencyError,
+  DivideByZeroError,
+  USDOLLAR,
+} from "../server/layers/business/types";
 
 describe("Money class test suite", () => {
-    const amount = 30
-    const currency = new USDollar()
-    const money = new Money(amount, currency)
-    // a helper class to test the arithmetic methods
-    const argentinianPeso = class implements Currency {
-        private name: string;
-        private short: string;
-    
-        constructor() {
-            this.name = "Peso argentino";
-            this.short = "ARG"
-        }
-    
-        getName(): string {
-            return this.name
-        }
-    
-        getShort(): string {
-            return this.short;
-        }
-    }
+  const amount = 30;
+  const argentinianPeso = { name: "Peso argentino", short: "ARG" };
 
-    describe("The getAmount method", () => {
+  const money = new Money(amount, USDOLLAR);
 
-        it("should return its amount when is called", () => {
-            expect(money.getAmount()).toStrictEqual(amount)
-        });
-    })
+  describe("The add method", () => {
+    it("should return a Money object when it is called", () => {
+      const total = money.add(money);
 
-    describe("The getCurrency method", () => {
-        it("should return its currency object when it is called", () => {    
-            expect(money.getCurrency()).toStrictEqual(currency)
-        })
-    })
+      expect(total instanceof Money).toStrictEqual(true);
+    });
 
-    describe("The add method", () => {
+    it("should return a Money object with an amount equal to the total of the added Money objects", () => {
+      const total = money.add(money);
+      const totalAmount = money.amount + money.amount;
 
-        it("should return a Money object when it is called", () => {
-            const total = money.add(money)
+      expect(total.amount).toStrictEqual(totalAmount);
+    });
 
-            expect(total instanceof Money).toStrictEqual(true)
-        })
+    it("should throw an error showing there are mismatched currencies if the method received as parameter some money with a different currency", () => {
+      const anotherMoney = new Money(amount, argentinianPeso);
 
-        it("should return a Money object with an amount equal to the total of the added Money objects", () => {
-            const total = money.add(money)
-            const totalAmount = money.getAmount() + money.getAmount()
+      let expected = "";
 
-            expect(total.getAmount()).toStrictEqual(totalAmount)
-        })
+      try {
+        money.add(anotherMoney);
+      } catch (error: unknown) {
+        expected = error instanceof IncorrectCurrencyError ? error.message : "";
+      }
 
-        it("should throw an error of type IncorrectCurrencyError if the method receives as parameter some money of different currency", () => {
-            const anotherMoney = new Money(amount, new argentinianPeso())
-            
-            expect(() => money.add(anotherMoney)).toThrowError(IncorrectCurrencyError)
-        })
+      expect(() => money.add(anotherMoney)).toThrow(expected);
+    });
+  });
 
-        it("should throw an error showing there are mismatched currencies if the method received as parameter some money with a different currency", () => {
-            const anotherMoney = new Money(amount, new argentinianPeso())
+  describe("The substract method", () => {
+    it("should return a Money object when it is called", () => {
+      const total = money.substract(money);
 
-            let expected = "";
+      expect(total instanceof Money).toStrictEqual(true);
+    });
 
-            try {
-                money.add(anotherMoney)
-            } catch (error: unknown) {
-                expected = error instanceof IncorrectCurrencyError 
-                ? error.message 
-                : ""
-            }
-            
-            expect(() => money.add(anotherMoney)).toThrow(expected)
-        })
-    })
+    it("should throw an error showing there are mismatched currencies if the method received as parameter some money with a different currency", () => {
+      const anotherMoney = new Money(amount, argentinianPeso);
 
-    describe("The substract method", () => {
+      let expected = "";
 
-        it("should return a Money object when it is called", () => {
-            const total = money.substract(money)
-            
-            expect(total instanceof Money).toStrictEqual(true)
-        })
+      try {
+        money.substract(anotherMoney);
+      } catch (error: unknown) {
+        expected = error instanceof IncorrectCurrencyError ? error.message : "";
+      }
 
-        it("should return a Money object with an amount equal to the total of the substracted Money objects", () => {
-            const total = money.substract(money)
-            const totalAmount = money.getAmount() - money.getAmount()
+      expect(() => money.substract(anotherMoney)).toThrow(expected);
+    });
 
-            expect(total.getAmount()).toStrictEqual(totalAmount)
-        })
+    it("should substract the Money object passed in as paramter to the given Money object", () => {
+      const money2 = new Money(amount / 2, USDOLLAR);
+      const total = money.substract(money2); // 30 - 15 = 15
+      const totalAmount = money.amount - money2.amount;
 
-        it("should throw an error of type IncorrectCurrencyError if the method receives as parameter some money of different currency", () => {
-            const anotherMoney = new Money(amount, new argentinianPeso())
-            
-            expect(() => money.substract(anotherMoney)).toThrowError(IncorrectCurrencyError)
-        })
+      expect(total.amount).toStrictEqual(totalAmount);
+    });
 
-        it("should throw an error showing there are mismatched currencies if the method received as parameter some money with a different currency", () => {
-            const anotherMoney = new Money(amount, new argentinianPeso())
+    it("should return a Money object with a negative amount if the passed in Money object has a greater amount than the given Money object", () => {
+      const money2 = new Money(amount * 2, USDOLLAR);
+      const total = money.substract(money2);
+      const totalAmount = money.amount - money2.amount;
 
-            let expected = "";
+      expect(total.amount).toStrictEqual(totalAmount);
+    });
+  });
 
-            try {
-                money.add(anotherMoney)
-            } catch (error: unknown) {
-                expected = error instanceof IncorrectCurrencyError 
-                ? error.message 
-                : ""
-            }
-            
-            expect(() => money.add(anotherMoney)).toThrow(expected)
-        })
-    })
+  describe("The multiply method", () => {
+    it("should return a Money object when it is called", () => {
+      const total = money.multiply(money);
 
-    describe("The multiply method", () => {
+      expect(total instanceof Money).toStrictEqual(true);
+    });
 
-        it("should return a Money object when it is called", () => {
-            const total = money.multiply(money)
-            
-            expect(total instanceof Money).toStrictEqual(true)
-        })
+    it("should return a Money object with an amount equal to the total of the multiplied Money objects", () => {
+      const total = money.multiply(money);
+      const totalAmount = money.amount * money.amount;
 
-        it("should return a Money object with an amount equal to the total of the multiplied Money objects", () => {
-            const total = money.multiply(money)
-            const totalAmount = money.getAmount() * money.getAmount()
+      expect(total.amount).toStrictEqual(totalAmount);
+    });
 
-            expect(total.getAmount()).toStrictEqual(totalAmount)
-        })
+    it("should throw an error showing there are mismatched currencies if the method received as parameter some money with a different currency", () => {
+      const anotherMoney = new Money(amount, argentinianPeso);
 
-        it("should throw an error of type IncorrectCurrencyError if the method receives as parameter some money of different currency", () => {
-            const anotherMoney = new Money(amount, new argentinianPeso())
-            
-            expect(() => money.multiply(anotherMoney)).toThrowError(IncorrectCurrencyError)
-        })
+      let expected = "";
 
-        it("should throw an error showing there are mismatched currencies if the method received as parameter some money with a different currency", () => {
-            const anotherMoney = new Money(amount, new argentinianPeso())
+      try {
+        money.multiply(anotherMoney);
+      } catch (error: unknown) {
+        expected = error instanceof IncorrectCurrencyError ? error.message : "";
+      }
 
-            let expected = "";
+      expect(() => money.multiply(anotherMoney)).toThrow(expected);
+    });
+  });
 
-            try {
-                money.add(anotherMoney)
-            } catch (error: unknown) {
-                expected = error instanceof IncorrectCurrencyError 
-                ? error.message 
-                : ""
-            }
-            
-            expect(() => money.add(anotherMoney)).toThrow(expected)
-        })
-    })
+  describe("The divide method", () => {
+    it("should return a Money object when it is called", () => {
+      const total = money.divide(money);
 
-    describe("The divide method", () => {
+      expect(total instanceof Money).toStrictEqual(true);
+    });
 
-        it("should return a Money object when it is called", () => {
-            const total = money.divide(money)
+    it("should divide the given Money object by the Money object passed in as parameter", () => {
+      const money2 = new Money(amount / 2, USDOLLAR);
+      const total = money.substract(money2);
+      const totalAmount = money.amount - money2.amount;
 
-            expect(total instanceof Money).toStrictEqual(true)
-        })
+      expect(total.amount).toStrictEqual(totalAmount);
+    });
 
-        it("should return a Money object with an amount equal to the total of the divided Money objects", () => {
-            const total = money.divide(money)
-            const totalAmount = money.getAmount() / money.getAmount()
+    it("should throw an error showing there are mismatched currencies if the method received as parameter some money with a different currency", () => {
+      const anotherMoney = new Money(amount, argentinianPeso);
 
-            expect(total.getAmount()).toStrictEqual(totalAmount)
-        })
+      let expected = "";
 
-        it("should throw an error of type IncorrectCurrencyError if the method receives as parameter some money of different currency", () => {
-            const anotherMoney = new Money(amount, new argentinianPeso())
-            
-            expect(() => money.divide(anotherMoney)).toThrowError(IncorrectCurrencyError)
-        })
+      try {
+        money.divide(anotherMoney);
+      } catch (error: unknown) {
+        expected = error instanceof IncorrectCurrencyError ? error.message : "";
+      }
 
-        it("should throw an error showing there are mismatched currencies if the method received as parameter some money with a different currency", () => {
-            const anotherMoney = new Money(amount, new argentinianPeso())
+      expect(() => money.divide(anotherMoney)).toThrow(expected);
+    });
 
-            let expected = "";
+    it("should throw an error if we try to divide some money by another money object with an amount of zero", () => {
+      const anotherMoney = new Money(0, USDOLLAR);
 
-            try {
-                money.add(anotherMoney)
-            } catch (error: unknown) {
-                expected = error instanceof IncorrectCurrencyError 
-                ? error.message 
-                : ""
-            }
-            
-            expect(() => money.add(anotherMoney)).toThrow(expected)
-        })
-    })
+      let expected = "";
 
-})
+      try {
+        money.divide(anotherMoney);
+      } catch (error: unknown) {
+        expected = error instanceof DivideByZeroError ? error.message : "";
+      }
+
+      expect(() => money.divide(anotherMoney)).toThrow(expected);
+    });
+  });
+});
